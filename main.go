@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 type TestActorState1 struct {
@@ -75,6 +77,6 @@ func main() {
 	}
 
 	fmt.Println("Reading state back:")
-	fmt.Printf("\nTestActorState1: { A: %v, B: %s }\n", s1.A, s1.B)
-	fmt.Printf("\nTestActorState2: { C: %s, D: %v }\n", s2.C, s2.D)
+	spew.Dump(s1)
+	spew.Dump(s2)
 }
