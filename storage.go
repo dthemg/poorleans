@@ -16,36 +16,28 @@ type actorState struct {
 }
 
 type dataBase struct {
-	states []actorState
+	storage map[string]actorState
 }
 
 var typeRegistry = map[string]reflect.Type{}
 
 // Keep a registry of existing types
-func registerStateType(state interface{}) {
+func registerStateType(state interface{}) error {
 	stateType := reflect.TypeOf(state)
 	typeName := stateType.String()
 
-	// Only register if it does not already exist
 	_, ok := typeRegistry[typeName]
 	if ok {
-		return
+		return errors.New("multiple serializer registrations")
 	}
 
-	fmt.Printf("Adding serializer for %s\n", typeName)
+	fmt.Printf("\tRegistered serializer for %s\n", typeName)
 	typeRegistry[typeName] = stateType
 	gob.Register(state)
+	return nil
 }
 
-func (db *dataBase) addEntry(key string, value interface{}) error {
-	for i := 0; i < len(db.states); i++ {
-		if db.states[i].Key == key {
-			return errors.New("entry already exists")
-		}
-	}
-
-	// Register state type so it later can be deserialized
-
+func (db *dataBase) updateState(key string, value interface{}) error {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 	if err := enc.Encode(value); err != nil {
@@ -60,32 +52,53 @@ func (db *dataBase) addEntry(key string, value interface{}) error {
 		State:     buf.Bytes(),
 	}
 
-	db.states = append(db.states, newState)
+	db.storage[key] = newState
 	return nil
+}
+
+func (db *dataBase) getState(key string) (interface{}, error) {
+	state, ok := db.storage[key]
+	if !ok {
+		return nil, errors.New("no such entry in database")
+	}
+
+	stateType, ok := typeRegistry[state.StateType]
+	if !ok {
+		log.Fatalf("Missing type for %s", state.StateType)
+	}
+	instance := reflect.New(stateType).Interface()
+
+	buf := bytes.NewBuffer(state.State)
+	dec := gob.NewDecoder(buf)
+	if err := dec.Decode(instance); err != nil {
+		log.Fatal("Error when decoding state")
+	}
+
+	return instance, nil
 }
 
 func (db *dataBase) print() {
 	fmt.Println("DB contents:")
-	for i := 0; i < len(db.states); i++ {
-		var e = db.states[i]
-
-		stateType, ok := typeRegistry[e.StateType]
+	for key, state := range db.storage {
+		stateType, ok := typeRegistry[state.StateType]
 		if !ok {
-			log.Fatal("Missing type")
+			log.Fatalf("Missing type for %s", state.StateType)
 		}
 		instance := reflect.New(stateType).Interface()
 
-		buf := bytes.NewBuffer(e.State)
+		buf := bytes.NewBuffer(state.State)
 		dec := gob.NewDecoder(buf)
 		if err := dec.Decode(instance); err != nil {
 			log.Fatal("Error when decoding")
 		}
 
-		fmt.Printf("%s: %s", e.Key, e.StateType)
+		fmt.Printf("\t%s: %s\n", key, stateType)
 	}
 }
 
 func createDatabase() (dataBase, error) {
-	db := dataBase{}
+	db := dataBase{
+		storage: make(map[string]actorState),
+	}
 	return db, nil
 }
