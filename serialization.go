@@ -10,7 +10,7 @@ import (
 
 var typeRegistry = map[string]reflect.Type{}
 
-func registerStateType(state interface{}) error {
+func registerContentType(state interface{}) error {
 	stateType := reflect.TypeOf(state)
 	typeName := stateType.String()
 

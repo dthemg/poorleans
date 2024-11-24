@@ -17,23 +17,23 @@ type TestActorState2 struct {
 	D int
 }
 
-func registerAllStateTypes() error {
+func registerContentTypes() error {
 	fmt.Println("Registering serializers")
-	if err := registerStateType(TestActorState1{}); err != nil {
+	if err := registerContentType(TestActorState1{}); err != nil {
 		return err
 	}
-	return registerStateType(TestActorState2{})
+	return registerContentType(TestActorState2{})
 }
 
 func main() {
 	fmt.Println("Starting up Poorleans")
 
-	db, err := createDatabase()
+	db, err := create()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = registerAllStateTypes()
+	err = registerContentTypes()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -42,7 +42,7 @@ func main() {
 		A: 100,
 		B: "David",
 	}
-	err = db.updateContent("myKey", state1)
+	err = db.write("myKey", state1)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,14 +51,14 @@ func main() {
 		C: "hello",
 		D: 32,
 	}
-	err = db.updateContent("myKey2", state2)
+	err = db.write("myKey2", state2)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	db.print()
 
-	readState1, err := db.getState("myKey")
+	readState1, err := db.read("myKey")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -67,7 +67,7 @@ func main() {
 		log.Fatal("could not read state")
 	}
 
-	readState2, err := db.getState("myKey2")
+	readState2, err := db.read("myKey2")
 	if err != nil {
 		log.Fatal(err)
 	}

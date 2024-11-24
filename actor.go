@@ -8,15 +8,16 @@ Allowed operations for an actor:
 	* Designate how to handle next message (through state)
 */
 
-// Also need to serialize which methods the actors have
-
 type Actor interface {
 	Process()
+	GetState() (interface{}, error)
+	DefaultState() interface{}
 }
 
-type CounterActor struct {
+type ActorImpl struct {
+	Actor
 }
 
-type CounterState struct {
-	counter int
+func (a ActorImpl) ProcessActor() {
+	a.Actor.Process()
 }

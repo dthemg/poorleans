@@ -15,17 +15,17 @@ type dataBase struct {
 	storage map[string]content
 }
 
-func (db *dataBase) updateContent(key string, value interface{}) error {
+func (db *dataBase) write(key string, value interface{}) error {
 	c, err := serialize(value)
 	if err != nil {
 		return err
 	}
 
-	stateType := reflect.TypeOf(value).String()
+	contentType := reflect.TypeOf(value).String()
 
 	newContent := content{
 		Key:         key,
-		ContentType: stateType,
+		ContentType: contentType,
 		Content:     c.Bytes(),
 	}
 
@@ -33,7 +33,7 @@ func (db *dataBase) updateContent(key string, value interface{}) error {
 	return nil
 }
 
-func (db *dataBase) getState(key string) (interface{}, error) {
+func (db *dataBase) read(key string) (interface{}, error) {
 	state, ok := db.storage[key]
 	if !ok {
 		return nil, errors.New("no such entry in database")
@@ -47,7 +47,7 @@ func (db *dataBase) getState(key string) (interface{}, error) {
 	return instance, nil
 }
 
-func createDatabase() (dataBase, error) {
+func create() (dataBase, error) {
 	db := dataBase{
 		storage: make(map[string]content),
 	}
