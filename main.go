@@ -42,7 +42,7 @@ func main() {
 		A: 100,
 		B: "David",
 	}
-	err = db.updateState("myKey", state1)
+	err = db.updateContent("myKey", state1)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,7 +51,7 @@ func main() {
 		C: "hello",
 		D: 32,
 	}
-	err = db.updateState("myKey2", state2)
+	err = db.updateContent("myKey2", state2)
 	if err != nil {
 		log.Fatal(err)
 	}
