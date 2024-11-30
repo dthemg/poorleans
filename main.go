@@ -17,11 +17,19 @@ type TestActorState2 struct {
 	D int
 }
 
+type MessageType1 struct {
+	MyMessage string
+}
+
 func registerContentTypes() error {
 	fmt.Println("Registering serializers")
 	if err := registerContentType(TestActorState1{}); err != nil {
 		return err
 	}
+	if err := registerContentType(MessageType1{}); err != nil {
+		return err
+	}
+
 	return registerContentType(TestActorState2{})
 }
 
@@ -76,7 +84,23 @@ func main() {
 		log.Fatal("could not read state")
 	}
 
-	fmt.Println("Reading state back:")
+	// Write messages
+
+	messageKey := "my-message-key-1"
+	err = db.appendMessage(messageKey, MessageType1{MyMessage: "Top secret message"})
+	if err != nil {
+		log.Fatal("could not write message")
+	}
+	msg, err := db.popOldestMessage(messageKey)
+	if err != nil {
+		log.Fatalf("could not read message: %s", err.Error())
+	}
+
+	fmt.Println("Grain states:")
 	spew.Dump(s1)
 	spew.Dump(s2)
+
+	fmt.Println("Messages:")
+	spew.Dump(msg)
+
 }
