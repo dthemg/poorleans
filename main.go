@@ -42,7 +42,7 @@ func main() {
 		A: 100,
 		B: "David",
 	}
-	err = db.write("myKey", state1)
+	err = db.writeGrainState("myKey", state1)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,14 +51,14 @@ func main() {
 		C: "hello",
 		D: 32,
 	}
-	err = db.write("myKey2", state2)
+	err = db.writeGrainState("myKey2", state2)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	db.print()
 
-	readState1, err := db.read("myKey")
+	readState1, err := db.readGrainState("myKey")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -67,7 +67,7 @@ func main() {
 		log.Fatal("could not read state")
 	}
 
-	readState2, err := db.read("myKey2")
+	readState2, err := db.readGrainState("myKey2")
 	if err != nil {
 		log.Fatal(err)
 	}

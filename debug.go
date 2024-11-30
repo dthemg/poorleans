@@ -8,9 +8,9 @@ import (
 	"reflect"
 )
 
-func (db *dataBase) print() {
+func (db *database) print() {
 	fmt.Println("DB contents:")
-	for key, state := range db.storage {
+	for key, state := range db.grainStates {
 		stateType, ok := typeRegistry[state.ContentType]
 		if !ok {
 			log.Fatalf("Missing type for %s", state.ContentType)
