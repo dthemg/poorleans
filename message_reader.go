@@ -14,15 +14,19 @@ func messageReaderLoop(db *database) {
 		for key := range db.messages {
 
 			// Try to pop message
-			_, err := db.popOldestMessage(key)
+			msg, err := db.popOldestMessage(key)
 			if err != nil {
 				fmt.Println(err.Error()) // Normal
 			} else {
 				fmt.Println("Read the thing")
+				fmt.Println(msg.Content)
+				fmt.Println(msg.GrainType)
+				fmt.Println(msg.Operation)
 			}
 
 			// Wtf am I supposed to do now
 			// Tell grain X do handle message Y?
+			// In-memory lookup of grains with associated functions
 		}
 	}
 }

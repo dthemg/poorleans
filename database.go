@@ -6,17 +6,23 @@ import (
 )
 
 type database struct {
-	grainStates map[string]entry     // key is grain-type/id (eventually)
-	messages    map[string][]message // key is message-type/id (eventually)
+	grainStates map[string]entry               // key is grain-type/id (eventually)
+	messages    map[string][]serializedMessage // key is message-type/id (eventually)
 }
 
 // Message to a grain
 // Contains instructions for a grain to perform a specific operation
 // on a specific set of data
-type message struct {
+type serializedMessage struct {
 	GrainType string
 	Operation string
 	Content   entry
+}
+
+type message struct {
+	GrainType string
+	Operation string
+	Content   interface{}
 }
 
 type entry struct {
@@ -55,7 +61,7 @@ func (db *database) appendMessage(key string, op string, value interface{}) erro
 	if err != nil {
 		return err
 	}
-	msg := message{
+	msg := serializedMessage{
 		Operation: op,
 		Content:   entry,
 	}
@@ -77,32 +83,36 @@ func (db *database) readGrainState(key string) (interface{}, error) {
 	return instance, nil
 }
 
-func (db *database) popOldestMessage(key string) (interface{}, error) {
+func (db *database) popOldestMessage(key string) (message, error) {
 	messages, ok := db.messages[key]
 	if !ok {
-		return nil, errors.New("no message list for key in database")
+		return message{}, errors.New("no message list for key in database")
 	}
 
 	if len(messages) == 0 {
-		return nil, errors.New("no messages to read")
+		return message{}, errors.New("no messages to read")
 	}
 
-	message := messages[0]
+	firstMessage := messages[0]
 
-	instance, err := deserialize(message.Content.Content, message.Content.ContentType)
+	instance, err := deserialize(firstMessage.Content.Content, firstMessage.Content.ContentType)
 	if err != nil {
-		return nil, err
+		return message{}, err
 	}
 
-	db.messages[key] = messages[1:] // Remove the message from the queue
-
-	return instance, nil
+	db.messages[key] = messages[1:] // Remove the first message from the queue
+	deserialized := message{
+		Operation: firstMessage.Operation,
+		GrainType: firstMessage.GrainType,
+		Content:   instance,
+	}
+	return deserialized, nil
 }
 
 func create() (database, error) {
 	db := database{
 		grainStates: make(map[string]entry),
-		messages:    make(map[string][]message),
+		messages:    make(map[string][]serializedMessage),
 	}
 	return db, nil
 }

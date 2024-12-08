@@ -8,7 +8,7 @@ import (
 	"reflect"
 )
 
-var typeRegistry = map[string]reflect.Type{}
+var typeRegistry = make(map[string]reflect.Type)
 
 func registerContentType(state interface{}) error {
 	stateType := reflect.TypeOf(state)

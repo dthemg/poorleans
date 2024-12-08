@@ -110,6 +110,15 @@ func main() {
 	fmt.Println("Messages:")
 	spew.Dump(msg)
 
+	// New beginnings
+	intActor := NewIntActor(38)
+	intActor.Process(message{})
+	intState1 := intActor.GetState()
+	spew.Dump(intState1)
+	intActor.Process(message{})
+	intState2 := intActor.GetState()
+	spew.Dump(intState2)
+
 	for range 10 {
 		fmt.Println("preventing program exit")
 		time.Sleep(time.Second * 10)
