@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/davecgh/go-spew/spew"
 )
@@ -46,6 +47,9 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// Run as separate process (?)
+	go messageReaderLoop(&db)
+
 	state1 := TestActorState1{
 		A: 100,
 		B: "David",
@@ -87,7 +91,10 @@ func main() {
 	// Write messages
 
 	messageKey := "my-message-key-1"
-	err = db.appendMessage(messageKey, MessageType1{MyMessage: "Top secret message"})
+	err = db.appendMessage(
+		messageKey,
+		"my-operation",
+		MessageType1{MyMessage: "Top secret message"})
 	if err != nil {
 		log.Fatal("could not write message")
 	}
@@ -103,4 +110,8 @@ func main() {
 	fmt.Println("Messages:")
 	spew.Dump(msg)
 
+	for range 10 {
+		fmt.Println("preventing program exit")
+		time.Sleep(time.Second * 10)
+	}
 }

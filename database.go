@@ -6,8 +6,17 @@ import (
 )
 
 type database struct {
-	grainStates map[string]entry   // key is grain-type/id (eventually)
-	messages    map[string][]entry // key is message-type/id (eventually)
+	grainStates map[string]entry     // key is grain-type/id (eventually)
+	messages    map[string][]message // key is message-type/id (eventually)
+}
+
+// Message to a grain
+// Contains instructions for a grain to perform a specific operation
+// on a specific set of data
+type message struct {
+	GrainType string
+	Operation string
+	Content   entry
 }
 
 type entry struct {
@@ -41,13 +50,16 @@ func (db *database) writeGrainState(key string, value interface{}) error {
 }
 
 // Not quite the same though, storage has to be an enumerable type
-func (db *database) appendMessage(key string, value interface{}) error {
+func (db *database) appendMessage(key string, op string, value interface{}) error {
 	entry, err := newEntry(value)
 	if err != nil {
 		return err
 	}
-
-	db.messages[key] = append(db.messages[key], entry)
+	msg := message{
+		Operation: op,
+		Content:   entry,
+	}
+	db.messages[key] = append(db.messages[key], msg)
 	return nil
 }
 
@@ -77,7 +89,7 @@ func (db *database) popOldestMessage(key string) (interface{}, error) {
 
 	message := messages[0]
 
-	instance, err := deserialize(message.Content, message.ContentType)
+	instance, err := deserialize(message.Content.Content, message.Content.ContentType)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +102,7 @@ func (db *database) popOldestMessage(key string) (interface{}, error) {
 func create() (database, error) {
 	db := database{
 		grainStates: make(map[string]entry),
-		messages:    make(map[string][]entry),
+		messages:    make(map[string][]message),
 	}
 	return db, nil
 }
